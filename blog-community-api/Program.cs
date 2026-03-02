@@ -16,16 +16,11 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        var jwtSection = builder.Configuration.GetSection("Jwt");
-        var issuer =  jwtSection["Issuer"];
-        var audience = jwtSection["Audience"];
-        var key = jwtSection["Key"];
-        var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(
-                name: myAllowSpecificOrigins,
+                name: "_myAllowSpecificOrigins",
                 policy =>
                 {
                     policy.WithOrigins("http://localhost:5173")
@@ -33,8 +28,6 @@ public class Program
                         .AllowAnyMethod();
                 });
         });
-        
-        // Add services to the container.
         builder.Services.AddControllers();
         
         // Data DIs
@@ -49,6 +42,11 @@ public class Program
         builder.Services.AddAutoMapper(_ => { }, typeof(Program).Assembly);
         
         // Security DIs
+        var jwtSection = builder.Configuration.GetSection("Jwt");
+        var issuer =  jwtSection["Issuer"];
+        var audience = jwtSection["Audience"];
+        var key = jwtSection["Key"];
+        
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
         builder.Services.AddAuthentication(options =>
             {
@@ -74,7 +72,7 @@ public class Program
         builder.Services.AddScoped<IService<BlogPost>, BlogPostService>();
         builder.Services.AddScoped<IService<Category>, CategoryService>();
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
         var app = builder.Build();
@@ -87,7 +85,7 @@ public class Program
 
         app.UseHttpsRedirection();
 
-        app.UseCors(myAllowSpecificOrigins);
+        app.UseCors("_myAllowSpecificOrigins");
         
         app.UseAuthentication();
         
